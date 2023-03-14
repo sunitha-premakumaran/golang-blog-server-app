@@ -1,0 +1,10 @@
+{
+    "port": 3000,
+    "database": {
+        "host": "localhost",
+        "username": "postgres",
+        "password": "root",
+        "name": "blogs_db",
+        "port": 5432
+    }
+}
