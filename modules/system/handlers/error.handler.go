@@ -1,10 +1,14 @@
 package handlers
 
 type AppError struct {
-	Message       string
-	CorrelationId string
-	StatusCode    int
-	Details       interface{}
+	Message       string      `json:"message"`
+	CorrelationId string      `json:"correlationId"`
+	StatusCode    int         `json:"statusCode"`
+	Details       interface{} `json:"details"`
+}
+
+func (m *AppError) Error() string {
+	return "error"
 }
 
 // TODO: add correlationId logic

@@ -16,7 +16,7 @@ type Controller struct {
 	BlogService *services.BlogService
 }
 
-func (controller *Controller) CreateBlog(resWriter http.ResponseWriter, req *http.Request) (interface{}, interface{}) {
+func (controller *Controller) CreateBlog(resWriter http.ResponseWriter, req *http.Request) (interface{}, error) {
 	var blog dto.CreateBlogDto
 	err := json.NewDecoder(req.Body).Decode(&blog)
 	if err != nil {
@@ -26,7 +26,7 @@ func (controller *Controller) CreateBlog(resWriter http.ResponseWriter, req *htt
 	return response, nil
 }
 
-func (controller *Controller) GetBlogById(resWriter http.ResponseWriter, req *http.Request) (interface{}, interface{}) {
+func (controller *Controller) GetBlogById(resWriter http.ResponseWriter, req *http.Request) (interface{}, error) {
 	pathParams := mux.Vars(req)
 	id, ok := pathParams["id"]
 	if !ok {
@@ -35,7 +35,7 @@ func (controller *Controller) GetBlogById(resWriter http.ResponseWriter, req *ht
 	return controller.BlogService.GetBlogById(id)
 }
 
-func (controller *Controller) DeleteBlog(resWriter http.ResponseWriter, req *http.Request) (interface{}, interface{}) {
+func (controller *Controller) DeleteBlog(resWriter http.ResponseWriter, req *http.Request) (interface{}, error) {
 	pathParams := mux.Vars(req)
 	id, ok := pathParams["id"]
 	if !ok {
@@ -44,7 +44,7 @@ func (controller *Controller) DeleteBlog(resWriter http.ResponseWriter, req *htt
 	return controller.BlogService.DeleteBlogById(id)
 }
 
-func (controller *Controller) EditBlog(resWriter http.ResponseWriter, req *http.Request) (interface{}, interface{}) {
+func (controller *Controller) EditBlog(resWriter http.ResponseWriter, req *http.Request) (interface{}, error) {
 	pathParams := mux.Vars(req)
 	id, ok := pathParams["id"]
 	if !ok {

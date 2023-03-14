@@ -4,8 +4,6 @@ import (
 	"blog-server-app/modules/blogs/models/dto"
 	"blog-server-app/modules/blogs/repository"
 	errorHandler "blog-server-app/modules/system/handlers"
-
-	"log"
 )
 
 // BlogService will have all the business logic for the CRUD operations
@@ -18,9 +16,8 @@ func (service *BlogService) CreateBlog(blog dto.CreateBlogDto) dto.CreateBlogRes
 	return service.BlogRepo.CreateBlog(blog)
 }
 
-func (service *BlogService) GetBlogById(id string) (*dto.GetBlogDto, *errorHandler.AppError) {
+func (service *BlogService) GetBlogById(id string) (*dto.GetBlogDto, error) {
 	blog := service.BlogRepo.GetBlogById(id)
-	log.Println("Blog obj", blog)
 	if blog.BlogId == 0 {
 		return nil, errorHandler.NewHTTPError(404, "Blog not found", nil)
 	}

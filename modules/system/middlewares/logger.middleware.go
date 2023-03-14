@@ -3,7 +3,8 @@ package middleware
 import (
 	"log"
 	"net/http"
-	"time"
+
+	"github.com/google/uuid"
 )
 
 // Logger is a middleware handler that does request logging
@@ -14,9 +15,15 @@ type LoggerMiddleware struct {
 // ServeHTTP handles the request by passing it to the real
 // handler and logging the request details
 func (l *LoggerMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
+
+	// Set correlation_id and print request
+	correlation_id := r.Header.Get("X-Correlation-ID")
+	if len(correlation_id) == 0 {
+		correlation_id = uuid.New().String()
+		r.Header.Set("X-Correlation-ID", correlation_id)
+	}
+	log.Printf("[correlation-id:%s] %s>> %s", correlation_id, r.Method, r.URL.Path)
 	l.handler.ServeHTTP(w, r)
-	log.Printf("%s>> %s %v", r.Method, r.URL.Path, time.Since(start))
 }
 
 // NewLogger constructs a new Logger middleware handler
