@@ -8,12 +8,14 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 //Controller is responsible for request validation and marshal and unmarshalling the response/request
 
 type Controller struct {
 	BlogService *services.BlogService
+	Logger      *zap.Logger
 }
 
 func (controller *Controller) CreateBlog(resWriter http.ResponseWriter, req *http.Request) (interface{}, error) {

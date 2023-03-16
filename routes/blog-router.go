@@ -8,11 +8,11 @@ import (
 
 func (router *Router) initBlogRoutes() {
 
-	repo := &r.BlogRepo{DB: router.DB}
+	repo := &r.BlogRepo{DB: router.DB, Logger: router.Logger.Named("BlogRepository")}
 
-	services := &s.BlogService{BlogRepo: repo}
+	services := &s.BlogService{BlogRepo: repo, Logger: router.Logger.Named("BlogService")}
 
-	controller := c.Controller{BlogService: services}
+	controller := c.Controller{BlogService: services, Logger: router.Logger.Named("BlogController")}
 
 	router.mapRoute("/users/{userId}/blogs/{id}", "GET", controller.GetBlogById)
 	router.mapRoute("/users/{userId}/blogs/{id}", "PATCH", controller.EditBlog)

@@ -1,5 +1,10 @@
 {
+    "env": "dev",
     "port": 3000,
+    "logging": {
+        "format": "console",
+        "level": "debug"
+    },
     "database": {
         "host": "localhost",
         "username": "postgres",

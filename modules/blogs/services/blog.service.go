@@ -4,12 +4,15 @@ import (
 	"blog-server-app/modules/blogs/models/dto"
 	"blog-server-app/modules/blogs/repository"
 	errorHandler "blog-server-app/modules/system/handlers"
+
+	"go.uber.org/zap"
 )
 
 // BlogService will have all the business logic for the CRUD operations
 
 type BlogService struct {
 	BlogRepo *repository.BlogRepo
+	Logger   *zap.Logger
 }
 
 func (service *BlogService) CreateBlog(blog dto.CreateBlogDto) dto.CreateBlogResponseDto {

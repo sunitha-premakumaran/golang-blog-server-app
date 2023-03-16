@@ -4,11 +4,13 @@ import (
 	"blog-server-app/DB/entities"
 	"blog-server-app/modules/blogs/models/dto"
 
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type BlogRepo struct {
-	DB *gorm.DB
+	DB     *gorm.DB
+	Logger *zap.Logger
 }
 
 func (repo *BlogRepo) CreateBlog(createDto dto.CreateBlogDto) dto.CreateBlogResponseDto {

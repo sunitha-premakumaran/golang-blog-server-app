@@ -8,6 +8,8 @@ import (
 	"log"
 	"net/http"
 
+	appLogger "blog-server-app/modules/system/services"
+
 	config "github.com/spf13/viper"
 )
 
@@ -21,6 +23,8 @@ func main() {
 		log.Fatalln("Failed to read config")
 	}
 
+	logger := appLogger.NewAppLogger()
+
 	port := config.GetString("port")
 
 	if port == "" {
@@ -31,10 +35,10 @@ func main() {
 	addr := fmt.Sprintf(":%s", port)
 
 	//Initiate db connection
-	db := DB.InitConnection()
+	db := DB.New(logger.Named("main/db")).InitConnection()
 
 	//Initialize routes
-	router := router.NewRouter(db)
+	router := router.NewRouter(db, logger.Named("main/router"))
 
 	wrappedMux := middleware.NewLoggerMiddleware(router.Router)
 

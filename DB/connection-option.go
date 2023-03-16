@@ -3,14 +3,18 @@ package DB
 import (
 	"blog-server-app/DB/entities"
 	"fmt"
-	"log"
 
 	config "github.com/spf13/viper"
+	"go.uber.org/zap"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
-func InitConnection() *gorm.DB {
+type AppDB struct {
+	logger *zap.Logger
+}
+
+func (dbInstance *AppDB) InitConnection() *gorm.DB {
 	url := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%d",
 		config.GetString("database.host"),
@@ -19,7 +23,7 @@ func InitConnection() *gorm.DB {
 		config.GetString("database.name"),
 		config.GetInt32("database.port"))
 
-	log.Println("Trying to establish db connection", url)
+	dbInstance.logger.Info("Trying to establish db connection")
 	db, err := gorm.Open(postgres.Open(url), &gorm.Config{})
 
 	if err != nil {
@@ -29,7 +33,11 @@ func InitConnection() *gorm.DB {
 	//Migrate the models
 	db.AutoMigrate(&entities.Blog{}, &entities.User{}, &entities.Comment{})
 
-	log.Println("Connected to database successfully")
+	dbInstance.logger.Info("Connected to database successfully")
 
 	return db
+}
+
+func New(logger *zap.Logger) *AppDB {
+	return &AppDB{logger}
 }
