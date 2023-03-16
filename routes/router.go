@@ -34,6 +34,7 @@ func NewRouter(db *gorm.DB, logger *zap.Logger) *Router {
 
 	//Other modules
 	router.initBlogRoutes()
+	router.initCommentsRoutes()
 
 	return &router
 }

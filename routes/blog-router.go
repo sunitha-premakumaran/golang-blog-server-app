@@ -12,7 +12,7 @@ func (router *Router) initBlogRoutes() {
 
 	services := &s.BlogService{BlogRepo: repo, Logger: router.Logger.Named("BlogService")}
 
-	controller := c.Controller{BlogService: services, Logger: router.Logger.Named("BlogController")}
+	controller := c.BlogController{BlogService: services, Logger: router.Logger.Named("BlogController")}
 
 	router.mapRoute("/users/{userId}/blogs/{id}", "GET", controller.GetBlogById)
 	router.mapRoute("/users/{userId}/blogs/{id}", "PATCH", controller.EditBlog)
