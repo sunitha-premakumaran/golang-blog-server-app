@@ -55,6 +55,8 @@ func NewAppLogger() *zap.Logger {
 	if err := json.Unmarshal(rawJSON, &cfg); err != nil {
 		panic(err)
 	}
+	cfg.EncoderConfig.TimeKey = "timestamp"
+	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	logger := zap.Must(cfg.Build())
 	defer logger.Sync()
 
