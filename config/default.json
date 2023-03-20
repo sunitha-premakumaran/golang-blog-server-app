@@ -9,7 +9,7 @@
         "host": "localhost",
         "username": "postgres",
         "password": "root",
-        "name": "blogs_db",
+        "name": "blogs_comments_db",
         "port": 5432
     }
 }

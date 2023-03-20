@@ -9,11 +9,10 @@ const (
 
 // CreateBlogDto
 type CreateBlogDto struct {
-	Name        string `json:"name" validate:"required"`
-	Content     string `json:"content"`
-	Description string `json:"description"`
-	Tags        string `json:"tags"`
-	CreatedBy   User
+	Name        string     `json:"name" validate:"required"`
+	Content     string     `json:"content"`
+	Description string     `json:"description"`
+	Tags        string     `json:"tags"`
 	Status      BlogStatus `json:"status" validate:"required,oneof=draft published"`
 }
 
