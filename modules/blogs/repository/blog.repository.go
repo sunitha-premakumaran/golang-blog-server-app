@@ -3,6 +3,7 @@ package repository
 import (
 	"blog-server-app/DB/entities"
 	"blog-server-app/modules/blogs/models/dto"
+	"database/sql"
 
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -13,40 +14,50 @@ type BlogRepo struct {
 	Logger *zap.Logger
 }
 
-func (repo *BlogRepo) CreateBlog(createDto dto.CreateBlogDto) dto.CreateBlogResponseDto {
+func (repo *BlogRepo) CreateBlog(userId string, createDto dto.CreateBlogDto) (*dto.CreateBlogResponseDto, error) {
 	response := dto.CreateBlogResponseDto{}
-	dbDto := entities.Blog{Name: createDto.Name, Content: createDto.Content, Description: createDto.Description, Tags: createDto.Tags, Status: createDto.Status}
-	repo.DB.Create(&dbDto)
+	dbDto := entities.Blog{Name: createDto.Name, Content: createDto.Content, Description: createDto.Description, Tags: createDto.Tags, Status: createDto.Status, AuthorID: sql.NullString{String: userId, Valid: true}}
+	result := repo.DB.Create(&dbDto)
+	if result.Error != nil && len(result.Error.Error()) != 0 {
+		return nil, result.Error
+	}
 	response.BlogId = dbDto.ID
-	return response
+	return &response, nil
 }
 
-func (repo *BlogRepo) DeleteBlog(id string) dto.UpdateDeleteResponseDto {
+func (repo *BlogRepo) DeleteBlog(id string) (*dto.UpdateDeleteResponseDto, error) {
 	blog := entities.Blog{}
 	result := repo.DB.Delete(&blog, id)
-	return dto.UpdateDeleteResponseDto{AffectedRecords: result.RowsAffected}
+	if result.Error != nil && len(result.Error.Error()) != 0 {
+		return nil, result.Error
+	}
+	return &dto.UpdateDeleteResponseDto{AffectedRecords: result.RowsAffected}, nil
 }
 
-func (repo *BlogRepo) GetBlogById(id string) dto.GetBlogDto {
+func (repo *BlogRepo) GetBlogById(id string) (*dto.GetBlogDto, error) {
 	model := entities.Blog{}
-	repo.DB.Where("ID = ?", id).First(&model)
-	return dto.GetBlogDto{Name: model.Name,
+	result := repo.DB.Where("ID = ?", id).First(&model)
+	if result.Error != nil && len(result.Error.Error()) != 0 {
+		return nil, result.Error
+	}
+	return &dto.GetBlogDto{Name: model.Name,
 		Description: model.Description,
 		Tags:        model.Tags,
 		Content:     model.Content,
 		Status:      string(model.Status),
 		BlogId:      model.ID,
-	}
+	}, nil
 }
 
-func (repo *BlogRepo) UpdateBlogById(id string, patchProps map[string]string) dto.UpdateDeleteResponseDto {
+func (repo *BlogRepo) UpdateBlogById(id string, patchProps map[string]string) (*dto.UpdateDeleteResponseDto, error) {
 	var keys []string
 	for k := range patchProps {
 		keys = append(keys, k)
 	}
 	blog := entities.Blog{}
 	result := repo.DB.Model(&blog).Where("ID = ?", id).Update(keys[0], patchProps[keys[0]])
-	return dto.UpdateDeleteResponseDto{AffectedRecords: result.RowsAffected}
+	if result.Error != nil && len(result.Error.Error()) != 0 {
+		return nil, result.Error
+	}
+	return &dto.UpdateDeleteResponseDto{AffectedRecords: result.RowsAffected}, nil
 }
-
-func GetBlogsByUser() {}

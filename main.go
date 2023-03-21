@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	appLogger "blog-server-app/modules/system/services"
 
@@ -25,10 +28,12 @@ func main() {
 
 	logger := appLogger.NewAppLogger()
 
+	appLogger := logger.Named("main")
+
 	port := config.GetString("port")
 
 	if port == "" {
-		log.Println("No PORT set. Setting it to default 3000")
+		appLogger.Info("No PORT set. Setting it to default 3000")
 		port = "3000"
 	}
 
@@ -42,10 +47,27 @@ func main() {
 
 	wrappedMux := middleware.NewLoggerMiddleware(router.Router)
 
-	errorObj := http.ListenAndServe(addr, wrappedMux)
+	serverErrors := make(chan error, 1)
 
-	log.Println("Started the server on the port: " + port)
+	go func() {
+		serverErrors <- http.ListenAndServe(addr, wrappedMux)
+	}()
+	appLogger.Info("Started the server on the port: " + port)
 
-	log.Fatal(errorObj)
+	// Set callback for the signal interrupt
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
 
+	select {
+	case err := <-serverErrors:
+		appLogger.Error(err.Error())
+		return
+
+	case sig := <-shutdown:
+		connection, _ := db.DB()
+		appLogger.Info("Recieved interrupt signal. Shutting down server and closing db connection")
+		appLogger.Error(sig.String())
+		connection.Close()
+
+	}
 }

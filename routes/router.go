@@ -3,7 +3,6 @@ package router
 import (
 	"blog-server-app/modules/blogs/models/dto"
 	"blog-server-app/modules/system/handlers"
-	appLogger "blog-server-app/modules/system/services"
 
 	"encoding/json"
 	"fmt"
@@ -22,6 +21,10 @@ type Router struct {
 	Logger *zap.Logger
 }
 
+type BaseRouter interface {
+	init()
+}
+
 func NewRouter(db *gorm.DB, logger *zap.Logger) *Router {
 	router := Router{Router: mux.NewRouter(), DB: db, Logger: logger}
 
@@ -32,57 +35,52 @@ func NewRouter(db *gorm.DB, logger *zap.Logger) *Router {
 		json.NewEncoder(w).Encode(p)
 	})
 
-	//Other modules
-	router.initBlogRoutes()
-	router.initCommentsRoutes()
+	routers := []BaseRouter{&UserRouter{Router: &router}, &BlogRouter{Router: &router}, &CommentRouter{Router: &router}}
+
+	for _, router := range routers {
+		router.init()
+	}
 
 	return &router
 }
 
-func (routeObj *Router) mapRoute(url string, restMethods string, f CustomHandlerFunc) {
-	routeObj.Logger.Info(fmt.Sprintf("Mapped %s to %s", url, runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()))
-	routeObj.Router.HandleFunc(url, makeErrorHandler(f)).Methods(restMethods)
-}
-
 type CustomHandlerFunc func(w http.ResponseWriter, r *http.Request) (interface{}, error)
 
-func makeErrorHandler(fn CustomHandlerFunc) http.HandlerFunc {
+func (routeObj *Router) mapRoute(url string, restMethods string, f CustomHandlerFunc) {
+	routeObj.Logger.Info(fmt.Sprintf("Mapped %s to %s", url, runtime.FuncForPC(reflect.ValueOf(f).Pointer()).Name()))
+	routeObj.Router.HandleFunc(url, routeObj.requestHandler(f)).Methods(restMethods)
+}
+
+func (routeObj *Router) requestHandler(fn CustomHandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Call controller
 		response, err := fn(w, r)
 
 		statusCode := http.StatusOK
-		correlation_id := r.Header.Get("X-Correlation-ID")
-
-		// Set common headers
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		w.Header().Set("X-Content-Type-Options", "nosniff")
-
-		logger := appLogger.NewAppLogger()
+		correlationId := r.Header.Get("X-Correlation-ID")
 
 		if err != nil {
-			switch e := err.(type) {
-			case *handlers.AppError:
-				statusCode = e.StatusCode
-				logger.Error(fmt.Sprintf("HTTP %d - %s", e.StatusCode, e.Message))
-				w.WriteHeader(e.StatusCode)
-				e.CorrelationId = correlation_id
-				json.NewEncoder(w).Encode(e)
-			default:
-				statusCode = http.StatusInternalServerError
-				logger.Error("HTTP unknown error occurred" + e.Error())
-				w.WriteHeader(http.StatusInternalServerError)
-				json.NewEncoder(w).Encode(handlers.NewHTTPError(http.StatusInternalServerError, "Internal Server Error occured: Unknown", nil))
-			}
+			response, statusCode = routeObj.handleHTTPError(err, correlationId)
 		} else {
-			w.Header().Set("Content-type", "application/json")
 			if r.Method == "POST" {
 				statusCode = http.StatusCreated
 			}
-			w.WriteHeader(statusCode)
-			json.NewEncoder(w).Encode(response)
 		}
-		logger.Info(fmt.Sprintf("[correlation-id:%s] %s<< %s %d %s", correlation_id, r.Method, r.URL.Path, statusCode, http.StatusText(statusCode)))
+		w.WriteHeader(statusCode)
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(response)
+		routeObj.Logger.Info(fmt.Sprintf("[correlation-id:%s] %s<< %s %d %s", correlationId, r.Method, r.URL.Path, statusCode, http.StatusText(statusCode)))
 	}
 
+}
+
+func (routeObj *Router) handleHTTPError(err error, correlationId string) (e *handlers.AppError, statusCode int) {
+	switch e := err.(type) {
+	case *handlers.AppError:
+		e.CorrelationId = correlationId
+		routeObj.Logger.Error(fmt.Sprintf("HTTP %d - %s", e.StatusCode, e.Message))
+		return e, e.StatusCode
+	default:
+		routeObj.Logger.Error("HTTP unknown error occurred" + e.Error())
+		return handlers.NewHTTPError(http.StatusInternalServerError, "Internal Server Error occured:"+e.Error(), nil), http.StatusInternalServerError
+	}
 }

@@ -1,6 +1,6 @@
 package dto
 
 type HealthStatus struct {
-	Status string
-	Health string
+	Status string `json:"status"`
+	Health string `json:"health"`
 }

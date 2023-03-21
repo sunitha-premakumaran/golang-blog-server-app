@@ -17,12 +17,12 @@ type LoggerMiddleware struct {
 func (l *LoggerMiddleware) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Set correlation_id and print request
-	correlation_id := r.Header.Get("X-Correlation-ID")
-	if len(correlation_id) == 0 {
-		correlation_id = uuid.New().String()
-		r.Header.Set("X-Correlation-ID", correlation_id)
+	correlationId := r.Header.Get("X-Correlation-ID")
+	if len(correlationId) == 0 {
+		correlationId = uuid.New().String()
+		r.Header.Set("X-Correlation-ID", correlationId)
 	}
-	log.Printf("[correlation-id:%s] %s>> %s", correlation_id, r.Method, r.URL.Path)
+	log.Printf("[correlation-id:%s] %s>> %s", correlationId, r.Method, r.URL.Path)
 	l.handler.ServeHTTP(w, r)
 }
 

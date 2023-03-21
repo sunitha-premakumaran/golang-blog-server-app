@@ -9,32 +9,6 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-func getLevel(level string) zapcore.Level {
-
-	switch level {
-	case "debug":
-		{
-			return -1
-		}
-	case "info":
-		{
-			return 0
-		}
-	case "warn":
-		{
-			return 1
-		}
-	case "error":
-		{
-			return 2
-		}
-	default:
-		{
-			return 2
-		}
-	}
-}
-
 func NewAppLogger() *zap.Logger {
 	level := config.GetString("logging.level")
 

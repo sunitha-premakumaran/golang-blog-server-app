@@ -6,16 +6,24 @@ import (
 	s "blog-server-app/modules/comments/services"
 )
 
-func (router *Router) initCommentsRoutes() {
+type CommentRouter struct {
+	repository *r.CommentRepository
+	service    *s.CommentService
+	controller *c.CommentController
 
-	repo := &r.CommentRepository{DB: router.DB, Logger: router.Logger.Named("CommentRepository")}
+	*Router
+}
 
-	services := &s.CommentService{CommentRepo: repo, Logger: router.Logger.Named("CommentService")}
+func (router *CommentRouter) init() {
 
-	controller := c.CommentController{CommentService: services, Logger: router.Logger.Named("CommentController")}
+	router.repository = &r.CommentRepository{DB: router.DB, Logger: router.Logger.Named("CommentRepository")}
 
-	router.mapRoute("/users/{userId}/blogs/{blogId}/comments/{id}", "GET", controller.GetCommentById)
-	router.mapRoute("/users/{userId}/blogs/{blogId}/comments/{id}", "PATCH", controller.EditComment)
-	router.mapRoute("/users/{userId}/blogs/{blogId}/comments/{id}", "DELETE", controller.DeleteComment)
-	router.mapRoute("/users/{userId}/blogs/{blogId}/comments", "POST", controller.CreateComment)
+	router.service = &s.CommentService{CommentRepo: router.repository, Logger: router.Logger.Named("CommentService")}
+
+	router.controller = &c.CommentController{CommentService: router.service, Logger: router.Logger.Named("CommentController")}
+
+	router.mapRoute("/users/{userId}/blogs/{blogId}/comments/{id}", "GET", router.controller.GetCommentById)
+	router.mapRoute("/users/{userId}/blogs/{blogId}/comments/{id}", "PATCH", router.controller.EditComment)
+	router.mapRoute("/users/{userId}/blogs/{blogId}/comments/{id}", "DELETE", router.controller.DeleteComment)
+	router.mapRoute("/users/{userId}/blogs/{blogId}/comments", "POST", router.controller.CreateComment)
 }

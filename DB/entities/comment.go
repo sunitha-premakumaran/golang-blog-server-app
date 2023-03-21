@@ -1,42 +1,42 @@
 package entities
 
-import "gorm.io/gorm"
-
-type Reaction string
-
-const (
-	Unlike Reaction = "unlike"
-	Like            = "like"
-	Heart 			= "heart"
-	Clap			= "clap"
+import (
+	"database/sql"
+	"database/sql/driver"
+	"encoding/json"
+	"errors"
+	"fmt"
 )
 
-type CommentReaction struct {
-	Reaction Reaction
-	MadeBy	User
-}
+type JSON json.RawMessage
 
-
-func (j CommentReaction) Value() (driver.Value, error) {
-	valueString, err := json.Marshal(j)
-	return string(valueString), err
-}
-
-func (j *CommentReaction) Scan(value interface{}) error {
-	if err := json.Unmarshal(value.([]byte), &j); err != nil {
-		return err
+// Scan scan value into Jsonb, implements sql.Scanner interface
+func (j *JSON) Scan(value interface{}) error {
+	bytes, ok := value.([]byte)
+	if !ok {
+		return errors.New(fmt.Sprint("Failed to unmarshal JSONB value:", value))
 	}
-	return nil
+
+	result := json.RawMessage{}
+	err := json.Unmarshal(bytes, &result)
+	*j = JSON(result)
+	return err
 }
 
+// Value return json value, implement driver.Valuer interface
+func (j JSON) Value() (driver.Value, error) {
+	if len(j) == 0 {
+		return nil, nil
+	}
+	return json.RawMessage(j).MarshalJSON()
+}
 
 type Comment struct {
-	gorm.Model
-
-	Content 	string
-
-	CommentReactions   []CommentReaction   `sql:"type:jsonb"`
-	
-	Author  	User `gorm:"foreignKey:ID"`
+	BaseModel
+	Content          string
+	CommentReactions JSON `sql:"type:jsonb"`
+	PostedByUserID   sql.NullString
+	BelongsToBlogID  sql.NullString
+	PostedBy         User `gorm:"references:ID;foreignKey:PostedByUserID"`
+	BelongsToBlog    Blog `gorm:"references:ID;foreignKey:BelongsToBlogID"`
 }
-

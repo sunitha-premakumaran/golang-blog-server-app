@@ -31,7 +31,12 @@ func (dbInstance *AppDB) InitConnection() *gorm.DB {
 	}
 
 	//Migrate the models
-	db.AutoMigrate(&entities.Blog{}, &entities.User{}, &entities.Comment{})
+	errorDb := db.AutoMigrate(&entities.Blog{}, &entities.User{}, &entities.Comment{})
+
+	if errorDb != nil {
+		dbInstance.logger.Panic(errorDb.Error())
+		panic(errorDb.Error())
+	}
 
 	dbInstance.logger.Info("Connected to database successfully")
 

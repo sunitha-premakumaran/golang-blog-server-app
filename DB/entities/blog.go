@@ -2,18 +2,18 @@ package entities
 
 import (
 	"blog-server-app/modules/blogs/models/dto"
+	"database/sql"
 
-	"gorm.io/gorm"
+	"github.com/lib/pq"
 )
 
 type Blog struct {
-	gorm.Model
-
+	BaseModel
 	Name        string
 	Description string
-	Tags        string
+	Tags        pq.StringArray `gorm:"type:varchar(64)[]" json:"Tags"`
 	Content     string
 	Status      dto.BlogStatus
-	CreatedBy   User      `gorm:"foreignKey:ID"`
-	Comments    []Comment `gorm:"foreignKey:ID"`
+	AuthorID    sql.NullString
+	Author      User `gorm:"foreignKey:AuthorID;references:ID"`
 }

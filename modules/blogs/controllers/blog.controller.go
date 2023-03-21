@@ -24,8 +24,12 @@ func (controller *BlogController) CreateBlog(resWriter http.ResponseWriter, req 
 	if err != nil {
 		return nil, errorHandler.NewHTTPError(http.StatusBadRequest, "Malformed Request", nil)
 	}
-	response := controller.BlogService.CreateBlog(blog)
-	return response, nil
+	pathParams := mux.Vars(req)
+	userId, ok := pathParams["userId"]
+	if !ok {
+		return nil, errorHandler.NewHTTPError(http.StatusBadRequest, "Missing path param user id", nil)
+	}
+	return controller.BlogService.CreateBlog(userId, blog)
 }
 
 func (controller *BlogController) GetBlogById(resWriter http.ResponseWriter, req *http.Request) (interface{}, error) {
