@@ -23,7 +23,7 @@ type CommentReaction struct {
 }
 
 type GetCommentsResultDto struct {
-	comments []GetCommentDto
+	Comments []GetCommentDto `json:"comments"`
 }
 
 type GetCommentDto struct {

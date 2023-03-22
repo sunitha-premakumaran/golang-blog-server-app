@@ -17,18 +17,18 @@ func (service *CommentService) CreateComment(userId string, blogId string, creat
 	return service.CommentRepo.CreateComment(userId, blogId, createDto)
 }
 
-func (service *CommentService) GetComments(blogId string) ([]dto.GetCommentDto, error) {
-	commentsDto, error := service.CommentRepo.GetComments(blogId)
-	if len(error.Error()) != 0 {
-		return nil, error
+func (service *CommentService) GetComments(blogId string) (*dto.GetCommentsResultDto, error) {
+	commentsDto, err := service.CommentRepo.GetComments(blogId)
+	if err != nil && len(err.Error()) != 0 {
+		return nil, err
 	}
 	return transformDbCommentDto(commentsDto), nil
 }
 
-func transformDbCommentDto(comments []entities.Comment) []dto.GetCommentDto {
+func transformDbCommentDto(comments []entities.Comment) *dto.GetCommentsResultDto {
 	commentsDto := []dto.GetCommentDto{}
 	for _, comment := range comments {
 		commentsDto = append(commentsDto, dto.GetCommentDto{Content: comment.Content})
 	}
-	return commentsDto
+	return &dto.GetCommentsResultDto{Comments: commentsDto}
 }

@@ -16,8 +16,6 @@ type CommentRepository struct {
 
 func (repo *CommentRepository) CreateComment(userId string, blogId string, commentDto dto.CreateCommentDto) (*dto.CreateCommentResponseDto, error) {
 	response := dto.CreateCommentResponseDto{}
-	user := entities.User{}
-	user.ID = userId
 	dbDto := entities.Comment{Content: commentDto.Content, PostedByUserID: sql.NullString{Valid: true, String: userId}, BelongsToBlogID: sql.NullString{Valid: true, String: blogId}}
 	result := repo.DB.Create(&dbDto)
 	if result.Error != nil && len(result.Error.Error()) != 0 {
