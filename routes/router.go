@@ -66,11 +66,8 @@ func (routeObj *Router) requestHandler(fn CustomHandlerFunc) http.HandlerFunc {
 			}
 		}
 		w.WriteHeader(statusCode)
-		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(response)
-		routeObj.Logger.Info(fmt.Sprintf("[correlation-id:%s] %s<< %s %d %s", correlationId, r.Method, r.URL.Path, statusCode, http.StatusText(statusCode)))
 	}
-
 }
 
 func (routeObj *Router) handleHTTPError(err error, correlationId string) (e *handlers.AppError, statusCode int) {

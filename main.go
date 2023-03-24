@@ -45,12 +45,12 @@ func main() {
 	//Initialize routes
 	router := router.NewRouter(db, logger.Named("main/router"))
 
-	wrappedMux := middleware.NewLoggerMiddleware(router.Router)
+	loggerMiddleware := middleware.NewLoggerMiddleware(router.Router, appLogger)
 
 	serverErrors := make(chan error, 1)
 
 	go func() {
-		serverErrors <- http.ListenAndServe(addr, wrappedMux)
+		serverErrors <- http.ListenAndServe(addr, loggerMiddleware)
 	}()
 	appLogger.Info("Started the server on the port: " + port)
 
